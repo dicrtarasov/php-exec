@@ -16,7 +16,7 @@ interface Exec {
 	 * @param array $args аргументы
 	 * @param array $options опции функции
 	 * - escape bool - выполнить экранирование аргументов, false
-	 * @throws \app\lib\exec\ExecException
+	 * @throws \dicr\exec\ExecException
 	 * @return string вывод команды
 	 */
 	public function run(string $cmd, array $args=[], array $options=[]);
