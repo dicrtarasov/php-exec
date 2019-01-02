@@ -26,8 +26,8 @@
 			"url" : "https://asset-packagist.org"
 		}
 	],
-	"homepage" : "https://gitlab.com/dicrtarasov/yii2-exec",
+	"homepage" : "https://gitlab.com/dicr/yii2-exec",
 	"support" : {
-		"source" : "https://gitlab.com/dicrtarasov/yii2-exec.git"
+		"source" : "https://gitlab.com/dicr/yii2-exec.git"
 	}
 }
