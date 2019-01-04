@@ -1,7 +1,7 @@
 {
 	"name" : "dicr/yii2-exec",
 	"description" : "Компонент Yii2 для выполнения внешних комманд",
-	"type" : "library",
+	"type" : "yii2-extension",
 	"authors" : [{
 			"name" : "Igor Tarasov",
 			"email" : "develop@dicr.org",
