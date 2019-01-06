@@ -1,7 +1,7 @@
 {
-	"name" : "dicr/yii2-exec",
-	"description" : "Компонент Yii2 для выполнения внешних комманд",
-	"type" : "yii2-extension",
+	"name" : "dicr/php-exec",
+	"description" : "Command execution for PHP",
+	"type" : "library",
 	"authors" : [{
 			"name" : "Igor Tarasov",
 			"email" : "develop@dicr.org",
@@ -10,24 +10,24 @@
 		}
 	],
 	"minimum-stability" : "stable",
-	"require" : {
-		"yiisoft/yii2" : "~2.0"
-	},
 	"autoload" : {
 		"psr-4" : {
 			"dicr\\exec\\" : "src"
 		}
 	},
 	"keywords" : [
-		"php yii2 exec"
+		"php shell exec"
 	],
+	"require" : {
+		"php" : "~7"
+	},
 	"repositories" : [{
 			"type" : "composer",
 			"url" : "https://asset-packagist.org"
 		}
 	],
-	"homepage" : "https://gitlab.com/dicr/yii2-exec",
+	"homepage" : "https://gitlab.com/dicr/php-exec",
 	"support" : {
-		"source" : "https://gitlab.com/dicr/yii2-exec.git"
+		"source" : "https://gitlab.com/dicr/php-exec.git"
 	}
 }
