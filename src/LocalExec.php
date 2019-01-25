@@ -256,7 +256,7 @@ class LocalExec implements ExecInterface
         } elseif (! $this->isDisabled('shell_exec')) {
             $out = $this->shellExec($cmd, $args, $opts);
         } else {
-            throw new ExecException('все функции запрещены');
+            throw new ExecException($this->createCommand($cmd, $args, $opts), 'все функции запрещены');
         }
 
         return $out;
