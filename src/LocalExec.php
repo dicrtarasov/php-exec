@@ -35,7 +35,7 @@ class LocalExec implements ExecInterface
      */
     public function isDisabled(string $func)
     {
-        return function_exists($func) && ! in_array($func, $this->getDisabledFns());
+        return !function_exists($func) || in_array($func, $this->getDisabledFns());
     }
 
     /**
