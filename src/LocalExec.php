@@ -206,31 +206,27 @@ class LocalExec implements ExecInterface
     public function procOpen(string $cmd, array $args = [], array $opts = [])
     {
         $cmd = $this->createCommand($cmd, $args, $opts);
-        $temp = @fopen('php://temp', 'wt+');
-
+        $pipes = [];
         $proc = @proc_open($cmd, [
             0 => ['file', '/dev/null'],
-            1 => $temp,
-            2 => $temp
-        ]);
+            1 => ['pipe', 'r'],
+            2 => ['pipe', 'r']
+        ], $pipes);
 
         if ($proc === false) {
             throw new ExecException($cmd);
         }
 
-        @rewind($temp);
-        $out = stream_get_contents($temp);
-        if ($out === false) {
-            throw new ExecException($cmd);
+        $out = @stream_get_contents($pipes[1]);
+        @fclose($pipes[1]);
+
+        $out .= @stream_get_contents($pipes[2]);
+        @fclose($pipes[2]);
+
+        $ret = @proc_close($proc);
+        if (! empty($ret)) {
+            throw new ExecException($cmd, $out, $ret);
         }
-
-        $return = @proc_close($proc);
-
-        if (! empty($return)) {
-            throw new ExecException($cmd, $out, $return);
-        }
-
-        @fclose($temp);
 
         return $out;
     }
