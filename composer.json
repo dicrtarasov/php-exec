@@ -1,33 +1,30 @@
 {
-	"name" : "dicr/php-exec",
-	"description" : "Command execution for PHP",
-	"type" : "library",
-	"authors" : [{
-			"name" : "Igor Tarasov",
-			"email" : "develop@dicr.org",
-			"homepage" : "http://dicr.org",
-			"role" : "developer"
-		}
-	],
-	"minimum-stability" : "stable",
-	"autoload" : {
-		"psr-4" : {
-			"dicr\\exec\\" : "src"
-		}
-	},
-	"keywords" : [
-		"php shell exec"
-	],
-	"require" : {
-		"php" : "~7"
-	},
-	"repositories" : [{
-			"type" : "composer",
-			"url" : "https://asset-packagist.org"
-		}
-	],
-	"homepage" : "https://gitlab.com/dicr/php-exec",
-	"support" : {
-		"source" : "https://gitlab.com/dicr/php-exec.git"
-	}
+    "name": "dicr/php-exec",
+    "type": "library",
+    "description": "Выполнение консольных команд в PHP",
+    "keywords": ["dicr", "shell", "exec"],
+    "homepage": "https://gitlab.com/dicr/php-exec",
+    "support": {
+        "source": "https://gitlab.com/dicr/php-exec.git"
+    },
+    "authors": [
+        {
+            "name": "Igor Tarasov",
+            "email": "develop@dicr.org",
+            "homepage": "http://dicr.org",
+            "role": "developer"
+        }
+    ],
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "dicr\\exec\\": "src/"
+        }
+    },
+    "require": {
+        "php": "~7.2"
+    },
+    "repositories": [
+        {"type": "composer", "url": "https://asset-packagist.org"}
+    ]
 }

@@ -1,35 +1,43 @@
 <?php
+/*
+ * @copyright 2019-2020 Dicr http://dicr.org
+ * @author Igor A Tarasov <develop@dicr.org>
+ * @license proprietary
+ * @version 03.09.20 22:00:14
+ */
+
+declare(strict_types = 1);
 namespace dicr\exec;
 
+use Exception;
+use InvalidArgumentException;
+use Throwable;
+
 /**
- * Ошибка выполнения команды
- *
- * @author Igor (Dicr) Tarasov <develop@dicr.org>
- * @version 180626
+ * Ошибка выполнения команды.
  */
-class ExecException extends \Exception
+class ExecException extends Exception
 {
     /** @var string выполняемая команда */
     protected $cmd;
 
     /**
-     * Конструктор
+     * {@inheritDoc}
      *
      * @param string $cmd команда
      * @param string $error ошибка
      * @param int $code код ошибки
-     * @param \Throwable $prev предыдущая проблема
-     * @throws \InvalidArgumentException
+     * @param ?Throwable $prev предыдущая проблема
      */
-    public function __construct(string $cmd, string $error = '', int $code = 0, \Throwable $prev = null)
+    public function __construct(string $cmd, string $error = '', int $code = 0, ?Throwable $prev = null)
     {
-        if ($cmd == '') {
-            throw new \InvalidArgumentException('cmd');
+        if ($cmd === '') {
+            throw new InvalidArgumentException('cmd');
         }
 
         $this->cmd = $cmd;
 
-        if ($error == '') {
+        if ($error === '') {
             $last = error_get_last();
             if (! empty($last['message'])) {
                 $error = $last['message'];
@@ -47,7 +55,7 @@ class ExecException extends \Exception
      *
      * @return string
      */
-    public function getCmd()
+    public function getCmd() : string
     {
         return $this->cmd;
     }

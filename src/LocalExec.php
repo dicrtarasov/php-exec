@@ -1,66 +1,79 @@
 <?php
+/*
+ * @copyright 2019-2020 Dicr http://dicr.org
+ * @author Igor A Tarasov <develop@dicr.org>
+ * @license proprietary
+ * @version 03.09.20 22:15:30
+ */
+
+declare(strict_types = 1);
 namespace dicr\exec;
+
+use InvalidArgumentException;
+use function function_exists;
+use function in_array;
+use function ob_get_clean;
 
 /**
  * Выполнение команд локально.
  * Использует различные доступные методы.
- *
- * @author Igor (Dicr) Tarasov <develop@dicr.org>
- * @version 180624
  */
 class LocalExec implements ExecInterface
 {
-    /** @var array запрещенные функции */
-    protected static $disabledFns;
-
     /**
      * Возвращает список запрещенных функций.
      *
-     * @return array
+     * @return string[]
      */
-    protected function getDisabledFns()
+    private static function disabledFuncs() : array
     {
-        if (! isset(self::$disabledFns)) {
+        /** @var array запрещенные функции */
+        static $fns;
+
+        if (! isset($fns)) {
             $disabledList = ini_get('disable_functions') . ',' . ini_get('suhosin.executor.func.blacklist');
-            self::$disabledFns = preg_split('~[\s\,]+~uism', $disabledList, - 1, PREG_SPLIT_NO_EMPTY);
+            $fns = preg_split('~[\s\,]+~um', $disabledList, - 1, PREG_SPLIT_NO_EMPTY);
         }
-        return self::$disabledFns;
+
+        return $fns;
     }
 
     /**
      * Проверяет запрещена ли функция.
      *
      * @param string $func название функции
-     * @return boolean
+     * @return bool
      */
-    public function isDisabled(string $func)
+    public static function isDisabled(string $func) : bool
     {
-        return !function_exists($func) || in_array($func, $this->getDisabledFns());
+        return ! function_exists($func) || in_array($func, self::disabledFuncs());
     }
 
     /**
      * Создает команду для запуска
      *
-     * @param string $cmd комманда
+     * @param string $cmd команда
      * @param array $args аргументы
      * @param array $opts опции
-     *        - escape bool экранировать аргументы
+     * - bool $escape экранировать аргументы
+     * @return string
      */
-    public function createCommand(string $cmd, array $args = [], array $opts = [])
+    public static function createCommand(string $cmd, array $args = [], array $opts = []) : string
     {
         $cmd = trim($cmd);
         if ($cmd === '') {
-            throw new \InvalidArgumentException('empty cmd');
+            throw new InvalidArgumentException('empty cmd');
         }
 
         $command = escapeshellcmd($cmd);
 
         if (! empty($args)) {
             if (! empty($opts['escape'])) {
-                $args = array_map(function ($arg) {
+                $args = array_map(static function($arg) {
                     return escapeshellarg($arg);
                 }, $args);
             }
+
             $command .= ' ' . implode(' ', $args);
         }
 
@@ -70,25 +83,26 @@ class LocalExec implements ExecInterface
     /**
      * Выполняет exec
      *
-     * @param string $cmd комманда
+     * @param string $cmd команда
      * @param array $args аргументы
      * @param array $opts опции
      *        - escape bool экранировать аргументы
+     * @return string вывод команды
      * @throws ExecException
-     * @return string вывод комманды
      */
-    public function exec(string $cmd, array $args = [], array $opts = [])
+    public static function exec(string $cmd, array $args = [], array $opts = []) : string
     {
-        $cmd = $this->createCommand($cmd, $args, $opts);
-        /** @var array $out */
-        $out = [];
+        $cmd = self::createCommand($cmd, $args, $opts);
 
         /** @var int $return */
         $return = null;
 
-        exec($cmd, $out, $return);
+        /** @var array $out */
+        $out = [];
 
+        exec($cmd, $out, $return);
         $out = implode('', $out);
+
         if (! empty($return)) {
             throw new ExecException($cmd, $out, $return);
         }
@@ -99,82 +113,89 @@ class LocalExec implements ExecInterface
     /**
      * Выполняет passthru
      *
-     * @param string $cmd комманда
+     * @param string $cmd команда
      * @param array $args аргументы
      * @param array $opts опции
-     *        - escape bool экранировать аргументы
+     * - bool $escape экранировать аргументы
+     * @return string вывод команды
      * @throws ExecException
-     * @return string вывод комманды
      */
-    public function passthru(string $cmd, array $args = [], array $opts = [])
+    public static function passthru(string $cmd, array $args = [], array $opts = []) : string
     {
-        $cmd = $this->createCommand($cmd, $args, $opts);
-
-        ob_start();
+        $cmd = self::createCommand($cmd, $args, $opts);
 
         /** @var int $return */
         $return = null;
 
+        ob_start();
         passthru($cmd, $return);
+        $out = ob_get_clean();
 
-        $out = \ob_get_clean();
         if (! empty($return)) {
             throw new ExecException($cmd, $out, $return);
         }
+
         return $out;
     }
 
     /**
      * Выполняет system
      *
-     * @param string $cmd комманда
+     * @param string $cmd команда
      * @param array $args аргументы
      * @param array $opts опции
-     *        - escape bool экранировать аргументы
+     * - bool $escape экранировать аргументы
+     * @return string вывод команды
      * @throws ExecException
-     * @return string вывод комманды
      */
-    public function system(string $cmd, array $args = [], array $opts = [])
+    public static function system(string $cmd, array $args = [], array $opts = []) : string
     {
-        $cmd = $this->createCommand($cmd, $args, $opts);
-        ob_start();
-        $ret = shell_exec($cmd, $return);
-        $out = ob_get_clean();
-        if ($ret === false || ! empty($return)) {
-            throw new ExecException($cmd, $out, $return);
+        $cmd = self::createCommand($cmd, $args, $opts);
+
+        $ret = shell_exec($cmd);
+        if ($ret === null) {
+            throw new ExecException($cmd);
         }
-        return $out;
+
+        return $ret;
     }
 
     /**
      * Выполняет shell_exec
      *
-     * @param string $cmd комманда
+     * @param string $cmd команда
      * @param array $args аргументы
      * @param array $opts опции
-     *        - escape bool экранировать аргументы
+     * - bool $escape экранировать аргументы
+     * @return string вывод команды
      * @throws ExecException
-     * @return string вывод комманды
      */
-    public function shellExec(string $cmd, array $args = [], array $opts = [])
+    public static function shellExec(string $cmd, array $args = [], array $opts = []) : string
     {
-        $cmd = $this->createCommand($cmd, $args, $opts);
-        return shell_exec($cmd);
+        $cmd = self::createCommand($cmd, $args, $opts);
+
+        $out = shell_exec($cmd);
+        if ($out === null) {
+            throw new ExecException($cmd);
+        }
+
+        return $out;
     }
 
     /**
      * Выполняет proc_open
      *
-     * @param string $cmd комманда
+     * @param string $cmd команда
      * @param array $args аргументы
      * @param array $opts опции
-     *        - escape bool экранировать аргументы
+     * - bool $escape экранировать аргументы
+     * @return string вывод команды
      * @throws ExecException
-     * @return string вывод комманды
+     * @noinspection PhpUsageOfSilenceOperatorInspection
      */
-    public function popen(string $cmd, array $args = [], array $opts = [])
+    public static function popen(string $cmd, array $args = [], array $opts = []) : string
     {
-        $cmd = $this->createCommand($cmd, $args, $opts);
+        $cmd = self::createCommand($cmd, $args, $opts);
 
         $f = @popen($cmd, 'rt');
         if (! $f) {
@@ -186,7 +207,7 @@ class LocalExec implements ExecInterface
             throw new ExecException($cmd);
         }
 
-        if (@pclose($f) === -1) {
+        if (@pclose($f) === - 1) {
             throw new ExecException($cmd);
         }
 
@@ -196,17 +217,20 @@ class LocalExec implements ExecInterface
     /**
      * Выполняет proc_open
      *
-     * @param string $cmd комманда
+     * @param string $cmd команда
      * @param array $args аргументы
      * @param array $opts опции
-     *        - escape bool экранировать аргументы
+     * - bool $escape экранировать аргументы
+     * @return string вывод команды
      * @throws ExecException
-     * @return string вывод комманды
+     * @noinspection PhpUsageOfSilenceOperatorInspection
      */
-    public function procOpen(string $cmd, array $args = [], array $opts = [])
+    public static function procOpen(string $cmd, array $args = [], array $opts = [])
     {
-        $cmd = $this->createCommand($cmd, $args, $opts);
+        $cmd = self::createCommand($cmd, $args, $opts);
+
         $pipes = [];
+
         $proc = @proc_open($cmd, [
             0 => ['file', '/dev/null'],
             1 => ['pipe', 'r'],
@@ -232,27 +256,26 @@ class LocalExec implements ExecInterface
     }
 
     /**
-     * {@inheritdoc}
-     * @see ExecInterface::run()
+     * @inheritdoc
      */
-    public function run(string $cmd, array $args = [], array $opts = [])
+    public function run(string $cmd, array $args = [], array $opts = []) : string
     {
         $out = null;
 
-        if (! $this->isDisabled('exec')) {
-            $out = $this->exec($cmd, $args, $opts);
-        } elseif (! $this->isDisabled('system')) {
-            $out = $this->system($cmd, $args, $opts);
-        } elseif (! $this->isDisabled('passthru')) {
-            $out = $this->passthru($cmd, $args, $opts);
-        } elseif (! $this->isDisabled('popen')) {
-            $out = $this->popen($cmd, $args, $opts);
-        } elseif (! $this->isDisabled('proc_open')) {
-            $out = $this->procOpen($cmd, $args, $opts);
-        } elseif (! $this->isDisabled('shell_exec')) {
-            $out = $this->shellExec($cmd, $args, $opts);
-        } else {
-            throw new ExecException($this->createCommand($cmd, $args, $opts), 'все функции запрещены');
+        if (! self::isDisabled('exec')) {
+            $out = self::exec($cmd, $args, $opts);
+        } elseif (! self::isDisabled('system')) {
+            $out = self::system($cmd, $args, $opts);
+        } elseif (! self::isDisabled('popen')) {
+            $out = self::popen($cmd, $args, $opts);
+        } elseif (! self::isDisabled('proc_open')) {
+            $out = self::procOpen($cmd, $args, $opts);
+        } elseif (! self::isDisabled('passthru')) {
+            $out = self::passthru($cmd, $args, $opts);
+        } elseif (! self::isDisabled('shell_exec')) {
+            $out = self::shellExec($cmd, $args, $opts);
+        } /** @noinspection InvertedIfElseConstructsInspection */ else {
+            throw new ExecException(self::createCommand($cmd, $args, $opts), 'Все функции запрещены');
         }
 
         return $out;
