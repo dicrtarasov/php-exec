@@ -3,7 +3,7 @@
  * @copyright 2019-2020 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license proprietary
- * @version 03.09.20 22:15:30
+ * @version 04.09.20 02:07:10
  */
 
 declare(strict_types = 1);
@@ -68,7 +68,7 @@ class LocalExec implements ExecInterface
         $command = escapeshellcmd($cmd);
 
         if (! empty($args)) {
-            if (! empty($opts['escape'])) {
+            if (! isset($opts['escape']) || ! empty($opts['escape'])) {
                 $args = array_map(static function($arg) {
                     return escapeshellarg($arg);
                 }, $args);
