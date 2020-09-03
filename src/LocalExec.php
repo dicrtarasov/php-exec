@@ -3,13 +3,14 @@
  * @copyright 2019-2020 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license proprietary
- * @version 04.09.20 02:07:10
+ * @version 04.09.20 02:13:39
  */
 
 declare(strict_types = 1);
 namespace dicr\exec;
 
 use InvalidArgumentException;
+use function array_filter;
 use function function_exists;
 use function in_array;
 use function ob_get_clean;
@@ -68,7 +69,11 @@ class LocalExec implements ExecInterface
         $command = escapeshellcmd($cmd);
 
         if (! empty($args)) {
-            if (! isset($opts['escape']) || ! empty($opts['escape'])) {
+            $args = array_filter($args, static function($val) {
+                return $val !== null;
+            });
+
+            if (! isset($opts['escape']) || $opts['escape']) {
                 $args = array_map(static function($arg) {
                     return escapeshellarg($arg);
                 }, $args);
